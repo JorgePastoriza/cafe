@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 
 const formatPrice = (n) => `$${parseFloat(n).toLocaleString('es-AR', { minimumFractionDigits: 0 })}`;
 
+
 function ProductCard({ product, onAdd }) {
   const isLowStock = product.stock <= product.stock_min;
   const outOfStock = product.stock === 0;
@@ -254,16 +255,20 @@ export default function POS() {
   // Fetch del recargo usando axios directamente para no depender
   // de que makeSlugAPI tenga el objeto tenant
   useEffect(() => {
-    if (!isAdmin()) return;
-    api.get(`/api/${slug}/tenant/settings`)
-      .then(r => {
-        const pct = parseFloat(r.data?.delivery_surcharge);
-        if (!isNaN(pct)) setDeliverySurcharge(pct);
-      })
-      .catch(() => {
-        // Silencioso: si el endpoint no existe todavía, el POS funciona sin recargo
-      });
-  }, [slug]);
+    const fetchConfig = async () => {
+      try {
+        const res = await configAPI.get();
+        const pct = parseFloat(res.data?.delivery_surcharge);
+        if (!isNaN(pct)) {
+          setDeliverySurcharge(pct);
+        }
+      } catch (err) {
+        console.error('Error fetching config:', err);
+        // Silencioso: si falla, deliverySurcharge queda en 0
+      }
+    };
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     categoriesAPI.getAll().then(r => setCategories(r.data)).catch(() => {});
