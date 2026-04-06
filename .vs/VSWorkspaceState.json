@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\backend",
+    "\\backend\\src",
+    "\\backend\\src\\config",
+    "\\backend\\src\\models",
+    "\\frontend",
+    "\\frontend\\public"
+  ],
+  "SelectedNode": "\\backend\\src\\models\\Config.js",
+  "PreviewInSolutionExplorer": false
+}
