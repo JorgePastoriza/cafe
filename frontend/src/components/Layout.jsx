@@ -91,7 +91,7 @@ export default function Layout({ children }) {
         {/* Brand */}
         <div className="sidebar-brand">
           <div className="sidebar-brand-text">
-            <h1>☕ Delicias Rodantes</h1>
+            <h1>Delicias Rodantes</h1>
             <p>Sistema de ventas</p>
           </div>
           <button 
