@@ -218,8 +218,8 @@ export default function Productos() {
                     return (
                       <tr key={p.id}>
                         <td>
-                          <img src={'/images/varios.jpg'} alt={p.name}
-                            style={{ width: 44, height: 44, objectFit: 'cover'}}
+                          <img src={p.image_url || '/images/varios.jpg'} alt={p.name}
+                            style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8 }}
                             onError={e => { e.target.src = 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=60'; }}
                           />
                         </td>

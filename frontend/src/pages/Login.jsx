@@ -64,8 +64,8 @@ export default function Login() {
         {/* Logo */}
         <div className="login-logo">
           <div className="coffee-icon">
-            <img src={p.image_url || '/images/delicias.png'} alt={p.name}
-                            style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8 }}
+            <img src={'/images/delicias.png'}
+                            style={{ width: 44, height: 44, objectFit: 'cover' }}
                             onError={e => { e.target.src = 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=60'; }}
                           />
           </div>
