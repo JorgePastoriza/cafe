@@ -98,7 +98,7 @@ function CartContent({ onSaleComplete, onClose, deliverySurcharge }) {
   const paymentOptions = [
     { key: 'efectivo', icon: '💵', label: 'Efectivo' },
     { key: 'qr', icon: '📱', label: 'QR' },
-    { key: 'debito', icon: '💳', label: 'Débito' },
+    { key: 'debito', icon: '💳', label: 'Transferencia' },
     { key: 'delivery', icon: '🛵', label: 'Delivery' },
   ];
  
