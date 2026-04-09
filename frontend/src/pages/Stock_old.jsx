@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { productsAPI, stockAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
-function AdjustModal({ product, onClose, onSave }) {  // ← ✅ AGREGADO: prop product
+function AdjustModal({ productsAPI, onClose, onSave, stockAPI }) {
   const [qty, setQty] = useState('');
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
@@ -85,11 +85,8 @@ export default function Stock() {
     try {
       const res = await productsAPI.getAll({ active: true });
       setProducts(res.data);
-    } catch { 
-      toast.error('Error al cargar stock'); 
-    } finally { 
-      setLoading(false); 
-    }
+    } catch { toast.error('Error al cargar stock'); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { fetch(); }, []);
@@ -108,20 +105,14 @@ export default function Stock() {
       <div className="page-header">
         <div>
           <div className="page-title">📦 Control de Stock</div>
-          <div className="page-subtitle">
-            {outCount > 0 
-              ? `⚠️ ${outCount} productos sin stock` 
-              : `${lowCount} productos con stock bajo`
-            }
-          </div>
+          <div className="page-subtitle">{outCount > 0 ? `⚠️ ${outCount} productos sin stock` : `${lowCount} productos con stock bajo`}</div>
         </div>
       </div>
 
       <div className="page-body">
         {(lowCount > 0 || outCount > 0) && (
           <div className="alert alert-warning mb-4">
-            ⚠️ Hay <strong>{outCount} productos sin stock</strong> y <strong>{lowCount} con stock bajo</strong>. 
-            Revisá el inventario.
+            ⚠️ Hay <strong>{outCount} productos sin stock</strong> y <strong>{lowCount} con stock bajo</strong>. Revisá el inventario.
           </div>
         )}
 
@@ -131,20 +122,14 @@ export default function Stock() {
             { key: 'low', label: `⚡ Stock Bajo (${lowCount})` },
             { key: 'out', label: `🚫 Sin Stock (${outCount})` }
           ].map(f => (
-            <button 
-              key={f.key} 
-              className={`filter-chip ${filter === f.key ? 'active' : ''}`} 
-              onClick={() => setFilter(f.key)}
-            >
+            <button key={f.key} className={`filter-chip ${filter === f.key ? 'active' : ''}`} onClick={() => setFilter(f.key)}>
               {f.label}
             </button>
           ))}
         </div>
 
         <div className="card">
-          {loading ? (
-            <div className="loading-center"><div className="spinner" /></div>
-          ) : (
+          {loading ? <div className="loading-center"><div className="spinner" /></div> : (
             <div className="table-wrapper">
               <table>
                 <thead>
@@ -167,24 +152,15 @@ export default function Stock() {
                       <tr key={p.id}>
                         <td>
                           <strong>{p.name}</strong>
-                          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                            {p.category?.name}
-                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.category?.name}</div>
                         </td>
                         <td>{p.type === 'cafe' ? '☕ Café' : '🥐 Comida'}</td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <span style={{ fontWeight: 700, fontSize: 18 }}>{p.stock}</span>
-                            <div style={{ 
-                              width: 80, 
-                              height: 6, 
-                              background: 'var(--border)', 
-                              borderRadius: 3, 
-                              overflow: 'hidden' 
-                            }}>
+                            <div style={{ width: 80, height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
                               <div style={{
-                                width: `${pct}%`, 
-                                height: '100%',
+                                width: `${pct}%`, height: '100%',
                                 background: isOut ? 'var(--danger)' : isLow ? 'var(--warning)' : 'var(--success)',
                                 borderRadius: 3
                               }} />
@@ -198,10 +174,7 @@ export default function Stock() {
                           </span>
                         </td>
                         <td>
-                          <button 
-                            className="btn btn-ghost btn-sm" 
-                            onClick={() => setAdjusting(p)}
-                          >
+                          <button className="btn btn-ghost btn-sm" onClick={() => setAdjusting(p)}>
                             📝 Ajustar
                           </button>
                         </td>
@@ -215,13 +188,7 @@ export default function Stock() {
         </div>
       </div>
 
-      {adjusting && (
-        <AdjustModal 
-          product={adjusting} 
-          onClose={() => setAdjusting(null)} 
-          onSave={fetch} 
-        />
-      )}
+      {adjusting && <AdjustModal product={adjusting} onClose={() => setAdjusting(null)} onSave={fetch} />}
     </>
   );
 }
