@@ -71,7 +71,7 @@ export default function Layout({ children }) {
         >
           ☰
         </button>
-        <span className="topbar-title">☕ Café</span>
+        <span className="topbar-title">☕ Delicias Rodantes</span>
         <div 
           className="topbar-user" 
           title={user?.name}
@@ -91,7 +91,7 @@ export default function Layout({ children }) {
         {/* Brand */}
         <div className="sidebar-brand">
           <div className="sidebar-brand-text">
-            <h1>☕ Café</h1>
+            <h1>☕ Delicias Rodantes</h1>
             <p>Sistema de ventas</p>
           </div>
           <button 
