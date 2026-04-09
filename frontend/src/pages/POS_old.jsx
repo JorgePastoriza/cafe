@@ -1,11 +1,11 @@
 // src/pages/POS.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { productsAPI, categoriesAPI, salesAPI, configAPI } from '../services/api';
-import { useCart } from '../context/CartContext'; // ← ✅ IMPORTACIÓN FALTANTE
-import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import toast from 'react-hot-toast';
 
 const formatPrice = (n) => `$${parseFloat(n).toLocaleString('es-AR', { minimumFractionDigits: 0 })}`;
+
 
 function ProductCard({ product, onAdd }) {
   const isLowStock = product.stock <= product.stock_min;
@@ -50,23 +50,20 @@ function CartContent({ onSaleComplete, onClose, deliverySurcharge }) {
   const { items, paymentMethod, setPaymentMethod, removeItem, updateQuantity, clearCart, total, itemCount } = useCart();
   const [loading, setLoading] = useState(false);
  
-  // Calcular recargo y total final
+  // ✅ AGREGAR: Calcular recargo y total final
   const isDelivery = paymentMethod === 'delivery';
   const surchargeAmount = isDelivery ? total * (deliverySurcharge / 100) : 0;
   const finalTotal = total + surchargeAmount;
  
   const handleSale = async () => {
-    if (items.length === 0) { 
-      toast.error('El carrito está vacío'); 
-      return; 
-    }
-    if (!paymentMethod) { 
-      toast.error('Seleccioná un método de pago'); 
-      return; 
-    }
-    
+    if (items.length === 0) { toast.error('El carrito está vacío'); return; }
+    if (!paymentMethod) { toast.error('Seleccioná un método de pago'); return; }
     setLoading(true);
     try {
+      // ❌ ANTES:
+      // const res = await slugAPI.sales.create({
+      
+      // ✅ DESPUÉS:
       const res = await salesAPI.create({
         items: items.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
         payment_method: paymentMethod
@@ -74,7 +71,7 @@ function CartContent({ onSaleComplete, onClose, deliverySurcharge }) {
       
       const saleData = res.data;
       
-      // Toast especial si tiene recargo
+      // ✅ AGREGAR: Toast especial si tiene recargo
       if (isDelivery && parseFloat(saleData.delivery_surcharge_amount || 0) > 0) {
         toast.success(
           `✅ Venta ${saleData.sale_number} registrada! — Recargo delivery: ${formatPrice(saleData.delivery_surcharge_amount)}`,
@@ -88,18 +85,18 @@ function CartContent({ onSaleComplete, onClose, deliverySurcharge }) {
       onSaleComplete?.();
       onClose?.();
     } catch (err) {
-      console.error('Error al procesar venta:', err);
       toast.error(err.response?.data?.error || 'Error al procesar la venta');
     } finally {
       setLoading(false);
     }
   };
  
+  // ✅ MODIFICAR paymentOptions para incluir delivery:
   const paymentOptions = [
     { key: 'efectivo', icon: '💵', label: 'Efectivo' },
     { key: 'qr', icon: '📱', label: 'QR' },
     { key: 'debito', icon: '💳', label: 'Débito' },
-    { key: 'delivery', icon: '🛵', label: 'Delivery' },
+    { key: 'delivery', icon: '🛵', label: 'Delivery' }, // ← NUEVO
   ];
  
   return (
@@ -145,7 +142,7 @@ function CartContent({ onSaleComplete, onClose, deliverySurcharge }) {
       <div className="cart-footer">
         <div className="separator" />
  
-        {/* Mostrar subtotal si es delivery */}
+        {/* ✅ AGREGAR: Mostrar subtotal si es delivery */}
         {isDelivery && items.length > 0 && (
           <div className="cart-total-row" style={{ marginBottom: 4 }}>
             <span className="cart-total-label" style={{ fontSize: 13 }}>Subtotal productos</span>
@@ -153,7 +150,7 @@ function CartContent({ onSaleComplete, onClose, deliverySurcharge }) {
           </div>
         )}
  
-        {/* Mostrar recargo si es delivery */}
+        {/* ✅ AGREGAR: Mostrar recargo si es delivery */}
         {isDelivery && deliverySurcharge > 0 && items.length > 0 && (
           <div className="cart-total-row" style={{ marginBottom: 8 }}>
             <span className="cart-total-label" style={{ fontSize: 13, color: 'var(--warning)' }}>
@@ -165,13 +162,13 @@ function CartContent({ onSaleComplete, onClose, deliverySurcharge }) {
           </div>
         )}
  
-        {/* Total final */}
+        {/* ✅ MODIFICAR: Mostrar total final en lugar de total */}
         <div className="cart-total-row" style={{ marginBottom: 12 }}>
           <span className="cart-total-label">Total{isDelivery ? ' final' : ''}</span>
           <span className="cart-total-value">{formatPrice(finalTotal)}</span>
         </div>
  
-        {/* Mensaje si delivery sin recargo configurado */}
+        {/* ✅ AGREGAR: Mensaje si delivery sin recargo configurado */}
         {isDelivery && deliverySurcharge === 0 && (
           <div style={{
             fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, padding: '6px 10px',
@@ -194,6 +191,7 @@ function CartContent({ onSaleComplete, onClose, deliverySurcharge }) {
             >
               <span className="pay-icon">{p.icon}</span>
               {p.label}
+              {/* ✅ AGREGAR: Badge con porcentaje en delivery */}
               {p.key === 'delivery' && deliverySurcharge > 0 && (
                 <span style={{ fontSize: 10, display: 'block', opacity: 0.8, marginTop: 1 }}>
                   +{deliverySurcharge}%
@@ -203,6 +201,7 @@ function CartContent({ onSaleComplete, onClose, deliverySurcharge }) {
           ))}
         </div>
  
+        {/* ✅ MODIFICAR: Mostrar finalTotal en el botón */}
         <button
           className="btn btn-success btn-full btn-lg"
           onClick={handleSale}
@@ -226,8 +225,6 @@ function CartContent({ onSaleComplete, onClose, deliverySurcharge }) {
 
 export default function POS() {
   const { isAdmin } = useAuth();
-  const { addItem, itemCount, total } = useCart();
-  
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -236,84 +233,75 @@ export default function POS() {
   const [search, setSearch] = useState('');
   const [cartOpen, setCartOpen] = useState(false);
   const [deliverySurcharge, setDeliverySurcharge] = useState(0);
+  
+  const { addItem, itemCount, total } = useCart();
 
   const fetchProducts = useCallback(async () => {
-    console.log('🔍 Cargando productos...', {
-      API_URL: import.meta.env.VITE_API_URL,
-      filterType,
-      filterCategory,
-      search
-    });
-    
     try {
       const params = { active: true };
       if (filterType) params.type = filterType;
       if (filterCategory) params.category_id = filterCategory;
       if (search) params.search = search;
       
-      console.log('📡 Request params:', params);
       const res = await productsAPI.getAll(params);
-      console.log('✅ Productos recibidos:', res.data.length);
+      
       setProducts(res.data);
-    } catch (err) {
-      console.error('❌ Error cargando productos:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        url: err.config?.url
-      });
-      toast.error(err.response?.data?.error || 'Error al cargar productos. Revisa la consola.');
+    } catch {
+      toast.error('Error al cargar productos');
     } finally {
       setLoading(false);
     }
   }, [filterType, filterCategory, search]);
 
-  // Cargar configuración de delivery
+  // Fetch del recargo usando axios directamente para no depender
+  // de que makeSlugAPI tenga el objeto tenant
   useEffect(() => {
     const fetchConfig = async () => {
-      console.log('⚙️ Cargando configuración de delivery...');
       try {
         const res = await configAPI.get();
         const pct = parseFloat(res.data?.delivery_surcharge);
-        console.log('✅ Configuración cargada:', { delivery_surcharge: pct });
         if (!isNaN(pct)) {
           setDeliverySurcharge(pct);
         }
       } catch (err) {
-        console.error('⚠️ Error cargando config (no crítico):', err.message);
+        console.error('Error fetching config:', err);
         // Silencioso: si falla, deliverySurcharge queda en 0
       }
     };
     fetchConfig();
   }, []);
 
-  // Cargar categorías
   useEffect(() => {
-    console.log('🏷️ Cargando categorías...');
-    categoriesAPI.getAll()
-      .then(r => {
-        console.log('✅ Categorías cargadas:', r.data.length);
-        setCategories(r.data);
-      })
-      .catch(err => {
-        console.error('❌ Error cargando categorías:', err.message);
-      });
+    categoriesAPI.getAll().then(r => setCategories(r.data)).catch(() => {});
   }, []);
 
-  // Cargar productos con debounce
   useEffect(() => {
     const t = setTimeout(fetchProducts, 200);
     return () => clearTimeout(t);
   }, [fetchProducts]);
 
-  // Cerrar carrito con ESC
+  useEffect(() => {
+  const fetchConfig = async () => {
+    try {
+      const res = await configAPI.get();
+      const pct = parseFloat(res.data?.delivery_surcharge);
+      if (!isNaN(pct)) {
+        setDeliverySurcharge(pct);
+      }
+    } catch (err) {
+      console.error('Error fetching config:', err);
+      // Silencioso: si falla, deliverySurcharge queda en 0
+    }
+  };
+  fetchConfig();
+}, []);
+
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') setCartOpen(false); };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  // Prevenir scroll cuando carrito está abierto
   useEffect(() => {
     document.body.style.overflow = cartOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
