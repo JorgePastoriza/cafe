@@ -4,7 +4,7 @@ import { salesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 const formatPrice = (n) => `$${parseFloat(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 0 })}`;
-const paymentLabel = { efectivo: '💵 Efectivo', qr: '📱 QR', debito: '💳 Débito' };
+const paymentLabel = { efectivo: '💵 Efectivo', qr: '📱 QR', debito: '💳 Transferencia' };
 
 export default function Ventas() {
 
@@ -80,7 +80,7 @@ export default function Ventas() {
                   <option value="">Todos</option>
                   <option value="efectivo">💵 Efectivo</option>
                   <option value="qr">📱 QR</option>
-                  <option value="debito">💳 Débito</option>
+                  <option value="debito">💳 Transferencia</option>
                   <option value="delivery">🛵 Delivery</option>
                 </select>
               </div>
@@ -113,7 +113,7 @@ export default function Ventas() {
               <div className="stat-value">{formatPrice(totalByPayment.qr || 0)}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-label">💳 Débito</div>
+              <div className="stat-label">💳 Transferencia</div>
               <div className="stat-value">{formatPrice(totalByPayment.debito || 0)}</div>
             </div>
             <div className="stat-card">
