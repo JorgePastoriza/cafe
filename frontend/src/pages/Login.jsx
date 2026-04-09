@@ -64,7 +64,7 @@ export default function Login() {
         {/* Logo */}
         <div className="login-logo">
           <div className="coffee-icon">
-            <img src="/images/delicias.png" style={{ width: '25%', height: 'auto' }} />
+            <img src="/images/delicias.png" style={{ width: '30%', height: 'auto' }} />
           </div>
           <h1 style={{ 
             color: 'var(--espresso)', 
