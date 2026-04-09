@@ -39,17 +39,7 @@ export default function Cierre() {
 
   if (loading) return <div className="loading-center"><div className="spinner" /></div>;
 
-  // ✅ CÁLCULOS CORREGIDOS
-  const deliveryTotal = parseFloat(summary?.summary?.delivery || 0);
-  const efectivoTotal = parseFloat(summary?.summary?.efectivo || 0);
-  const qrTotal = parseFloat(summary?.summary?.qr || 0);
-  const debitoTotal = parseFloat(summary?.summary?.debito || 0);
-  
-  // Local = Efectivo + QR + Débito (todos los NO delivery)
-  const localTotal = efectivoTotal + qrTotal + debitoTotal;
-  
-  const hasDelivery = deliveryTotal > 0;
-  const hasLocal = localTotal > 0;
+  const hasDelivery = summary?.summary?.delivery > 0;
 
   return (
     <>
@@ -99,19 +89,19 @@ export default function Cierre() {
             <div className="stat-label">💳 Débito</div>
             <div className="stat-value">{formatPrice(summary?.summary?.debito)}</div>
           </div>
-          {hasDelivery && (
-            <div className="stat-card" style={{ borderColor: 'var(--warning)' }}>
-              <div className="stat-label">🛵 Delivery</div>
-              <div className="stat-value" style={{ color: 'var(--accent-dark)' }}>
-                {formatPrice(deliveryTotal)}
-              </div>
-              {summary?.summary?.delivery_surcharge_total > 0 && (
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                  Recargos: {formatPrice(summary?.summary?.delivery_surcharge_total)}
-                </div>
-              )}
+          {summary?.summary?.delivery > 0 && (
+          <div className="stat-card" style={{ borderColor: 'var(--warning)' }}>
+            <div className="stat-label">🛵 Delivery</div>
+            <div className="stat-value" style={{ color: 'var(--accent-dark)' }}>
+              {formatPrice(summary?.summary?.delivery)}
             </div>
-          )}
+            {summary?.summary?.delivery_surcharge_total > 0 && (
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                Recargos: {formatPrice(summary?.summary?.delivery_surcharge_total)}
+              </div>
+            )}
+          </div>
+        )}
         </div>
 
         {/* ── Stats por modalidad de entrega ── */}
@@ -122,42 +112,23 @@ export default function Cierre() {
             </div>
             <div className="card-body">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {/* Local */}
-                <div style={{
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center', 
-                  padding: '10px 14px', 
-                  background: hasLocal ? 'var(--foam)' : 'rgba(0,0,0,0.02)', 
-                  borderRadius: 'var(--radius-sm)',
-                  border: hasLocal ? '1px solid var(--border)' : '1px solid transparent'
-                }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--foam)', borderRadius: 'var(--radius-sm)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontSize: 22 }}>🏠</span>
                     <div>
                       <div style={{ fontWeight: 600 }}>Local</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        Ventas en mostrador
-                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Ventas en mostrador</div>
                     </div>
                   </div>
-                  <div style={{ 
-                    fontFamily: 'var(--font-display)', 
-                    fontSize: 20, 
-                    fontWeight: 700,
-                    color: hasLocal ? 'var(--espresso)' : 'var(--text-muted)'
-                  }}>
-                    {formatPrice(localTotal)}
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700 }}>
+                    {formatPrice(summary?.summary?.local)}
                   </div>
                 </div>
 
-                {/* Delivery */}
                 <div style={{
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '10px 14px',
-                  background: hasDelivery ? 'rgba(240,168,48,0.08)' : 'rgba(0,0,0,0.02)',
+                  background: hasDelivery ? 'rgba(240,168,48,0.08)' : 'var(--foam)',
                   border: hasDelivery ? '1px solid rgba(240,168,48,0.25)' : '1px solid transparent',
                   borderRadius: 'var(--radius-sm)'
                 }}>
@@ -165,34 +136,17 @@ export default function Cierre() {
                     <span style={{ fontSize: 22 }}>🛵</span>
                     <div>
                       <div style={{ fontWeight: 600 }}>Delivery</div>
-                      {hasDelivery && summary?.summary?.delivery_surcharge_total > 0 && (
+                      {hasDelivery && (
                         <div style={{ fontSize: 12, color: 'var(--warning)' }}>
                           Recargos: {formatPrice(summary?.summary?.delivery_surcharge_total)}
                         </div>
                       )}
                     </div>
                   </div>
-                  <div style={{ 
-                    fontFamily: 'var(--font-display)', 
-                    fontSize: 20, 
-                    fontWeight: 700, 
-                    color: hasDelivery ? 'var(--accent-dark)' : 'var(--text-muted)' 
-                  }}>
-                    {formatPrice(deliveryTotal)}
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: hasDelivery ? 'var(--accent-dark)' : 'var(--text-muted)' }}>
+                    {formatPrice(summary?.summary?.delivery)}
                   </div>
                 </div>
-              </div>
-
-              {/* Verificación del cálculo */}
-              <div style={{ 
-                marginTop: 12, 
-                padding: '8px 12px', 
-                background: 'rgba(91,155,213,0.08)', 
-                borderRadius: 6,
-                fontSize: 12,
-                color: 'var(--text-secondary)'
-              }}>
-                ℹ️ Verificación: Local ({formatPrice(localTotal)}) + Delivery ({formatPrice(deliveryTotal)}) = {formatPrice(localTotal + deliveryTotal)}
               </div>
             </div>
           </div>
@@ -204,9 +158,7 @@ export default function Cierre() {
             </div>
             <div className="card-body" style={{ padding: 0 }}>
               {summary?.topProducts?.length === 0 ? (
-                <div className="empty-state" style={{ padding: 32 }}>
-                  <p>Sin ventas registradas hoy</p>
-                </div>
+                <div className="empty-state" style={{ padding: 32 }}><p>Sin ventas registradas hoy</p></div>
               ) : (
                 <table>
                   <thead>
@@ -220,16 +172,10 @@ export default function Cierre() {
                   <tbody>
                     {summary?.topProducts?.map((p, i) => (
                       <tr key={p.id}>
-                        <td>
-                          <span style={{ fontSize: 16 }}>
-                            {['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i]}
-                          </span>
-                        </td>
+                        <td><span style={{ fontSize: 16 }}>{['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i]}</span></td>
                         <td><strong>{p.name}</strong></td>
                         <td>{p.quantity}</td>
-                        <td style={{ textAlign: 'right', fontWeight: 700 }}>
-                          {formatPrice(p.total)}
-                        </td>
+                        <td style={{ textAlign: 'right', fontWeight: 700 }}>{formatPrice(p.total)}</td>
                       </tr>
                     ))}
                   </tbody>
