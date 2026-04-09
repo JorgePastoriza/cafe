@@ -9,7 +9,7 @@ USE cafeteria_pos;
 -- ============================================================
 -- TABLA: roles
 -- ============================================================
-CREATE TABLE roles (
+CREATE TABLE IF NOT EXISTS roles (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(50) NOT NULL UNIQUE,
   description VARCHAR(255),
@@ -19,7 +19,7 @@ CREATE TABLE roles (
 -- ============================================================
 -- TABLA: users
 -- ============================================================
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   email VARCHAR(150) NOT NULL UNIQUE,
@@ -31,13 +31,13 @@ CREATE TABLE users (
   FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role ON users(role_id);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role_id);
 
 -- ============================================================
 -- TABLA: categories
 -- ============================================================
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL UNIQUE,
   type ENUM('cafe', 'comida') NOT NULL,
@@ -47,12 +47,12 @@ CREATE TABLE categories (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_categories_type ON categories(type);
+CREATE INDEX IF NOT EXISTS idx_categories_type ON categories(type);
 
 -- ============================================================
 -- TABLA: products
 -- ============================================================
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
   description TEXT,
@@ -70,14 +70,14 @@ CREATE TABLE products (
   CONSTRAINT chk_stock CHECK (stock >= 0)
 );
 
-CREATE INDEX idx_products_category ON products(category_id);
-CREATE INDEX idx_products_type ON products(type);
-CREATE INDEX idx_products_active ON products(active);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_type ON products(type);
+CREATE INDEX IF NOT EXISTS idx_products_active ON products(active);
 
 -- ============================================================
--- TABLA: config (NUEVA - para configuración del sistema)
+-- TABLA: config
 -- ============================================================
-CREATE TABLE config (
+CREATE TABLE IF NOT EXISTS config (
   id INT AUTO_INCREMENT PRIMARY KEY,
   config_key VARCHAR(100) NOT NULL UNIQUE,
   config_value TEXT NOT NULL,
@@ -85,12 +85,12 @@ CREATE TABLE config (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_config_key ON config(config_key);
+CREATE INDEX IF NOT EXISTS idx_config_key ON config(config_key);
 
 -- ============================================================
 -- TABLA: daily_closures
 -- ============================================================
-CREATE TABLE daily_closures (
+CREATE TABLE IF NOT EXISTS daily_closures (
   id INT AUTO_INCREMENT PRIMARY KEY,
   date DATE NOT NULL UNIQUE,
   closed_by INT NOT NULL,
@@ -105,21 +105,19 @@ CREATE TABLE daily_closures (
   FOREIGN KEY (closed_by) REFERENCES users(id)
 );
 
-CREATE INDEX idx_closures_date ON daily_closures(date);
+CREATE INDEX IF NOT EXISTS idx_closures_date ON daily_closures(date);
 
 -- ============================================================
--- TABLA: sales (MODIFICADA - con campos de delivery)
+-- TABLA: sales
 -- ============================================================
-CREATE TABLE sales (
+CREATE TABLE IF NOT EXISTS sales (
   id INT AUTO_INCREMENT PRIMARY KEY,
   sale_number VARCHAR(30) NOT NULL UNIQUE,
   user_id INT NOT NULL,
   payment_method ENUM('efectivo', 'qr', 'debito', 'delivery') NOT NULL,
-  -- Nuevos campos para delivery surcharge
   delivery_surcharge_pct DECIMAL(5, 2) DEFAULT 0.00 COMMENT 'Snapshot del % al momento de la venta',
   delivery_surcharge_amount DECIMAL(10, 2) DEFAULT 0.00 COMMENT 'Monto del recargo en pesos',
   subtotal_before_surcharge DECIMAL(10, 2) DEFAULT 0.00 COMMENT 'Subtotal de productos antes del recargo',
-  -- Campo total existente
   total DECIMAL(10, 2) NOT NULL,
   status ENUM('completed', 'cancelled') DEFAULT 'completed',
   closure_id INT,
@@ -129,15 +127,15 @@ CREATE TABLE sales (
   FOREIGN KEY (closure_id) REFERENCES daily_closures(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_sales_number ON sales(sale_number);
-CREATE INDEX idx_sales_user ON sales(user_id);
-CREATE INDEX idx_sales_created ON sales(created_at);
-CREATE INDEX idx_sales_payment ON sales(payment_method);
+CREATE INDEX IF NOT EXISTS idx_sales_number ON sales(sale_number);
+CREATE INDEX IF NOT EXISTS idx_sales_user ON sales(user_id);
+CREATE INDEX IF NOT EXISTS idx_sales_created ON sales(created_at);
+CREATE INDEX IF NOT EXISTS idx_sales_payment ON sales(payment_method);
 
 -- ============================================================
 -- TABLA: sale_items
 -- ============================================================
-CREATE TABLE sale_items (
+CREATE TABLE IF NOT EXISTS sale_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
   sale_id INT NOT NULL,
   product_id INT NOT NULL,
@@ -151,13 +149,13 @@ CREATE TABLE sale_items (
   CONSTRAINT chk_quantity CHECK (quantity > 0)
 );
 
-CREATE INDEX idx_sale_items_sale ON sale_items(sale_id);
-CREATE INDEX idx_sale_items_product ON sale_items(product_id);
+CREATE INDEX IF NOT EXISTS idx_sale_items_sale ON sale_items(sale_id);
+CREATE INDEX IF NOT EXISTS idx_sale_items_product ON sale_items(product_id);
 
 -- ============================================================
 -- TABLA: stock_movements
 -- ============================================================
-CREATE TABLE stock_movements (
+CREATE TABLE IF NOT EXISTS stock_movements (
   id INT AUTO_INCREMENT PRIMARY KEY,
   product_id INT NOT NULL,
   type ENUM('sale', 'adjustment', 'return') NOT NULL,
@@ -173,71 +171,67 @@ CREATE TABLE stock_movements (
   FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_stock_product ON stock_movements(product_id);
-CREATE INDEX idx_stock_type ON stock_movements(type);
-CREATE INDEX idx_stock_created ON stock_movements(created_at);
+CREATE INDEX IF NOT EXISTS idx_stock_product ON stock_movements(product_id);
+CREATE INDEX IF NOT EXISTS idx_stock_type ON stock_movements(type);
+CREATE INDEX IF NOT EXISTS idx_stock_created ON stock_movements(created_at);
 
 -- ============================================================
 -- DATOS INICIALES (SEED)
+-- Usando INSERT IGNORE para evitar errores si el script
+-- se corre más de una vez (duplicados en campos UNIQUE)
 -- ============================================================
 
 -- Roles
-INSERT INTO roles (name, description) VALUES
+INSERT IGNORE INTO roles (name, description) VALUES
 ('admin', 'Administrador con acceso completo al sistema'),
 ('cajero', 'Cajero con acceso al módulo de ventas y stock');
 
 -- Usuarios (password para ambos: admin123)
--- Hash generado con bcrypt rounds=10
-INSERT INTO users (name, email, password, role_id) VALUES
-('Administrador', 'admin@cafeteria.com', '$2a$10$oN67gCbf27TpsD5d13uBKupxapoZgJEP8CTZbourpfrTFSMDSX0US', 1),
-('Cajero', 'cajero@cafeteria.com', '$2b$10$YMjJJm6NkJBpGEpLdT/HtOl4Ux7Q9Bm.6Q1Xk7sSfHVvJHxsGsJSi', 2);
+-- Nota: ambos hashes usan prefijo $2b$ (bcrypt estándar)
+INSERT IGNORE INTO users (name, email, password, role_id) VALUES
+('Administrador', 'admin@cafeteria.com',  '$2b$10$oN67gCbf27TpsD5d13uBKupxapoZgJEP8CTZbourpfrTFSMDSX0US', 1),
+('Cajero',        'cajero@cafeteria.com', '$2b$10$YMjJJm6NkJBpGEpLdT/HtOl4Ux7Q9Bm.6Q1Xk7sSfHVvJHxsGsJSi', 2);
 
 -- Configuración inicial del sistema
-INSERT INTO config (config_key, config_value, description) VALUES
+INSERT IGNORE INTO config (config_key, config_value, description) VALUES
 ('delivery_surcharge', '10.00', 'Porcentaje de recargo para ventas con modalidad delivery (0-100)'),
-('business_name', 'Mi Cafetería', 'Nombre del negocio');
+('business_name',      'Mi Cafetería', 'Nombre del negocio');
 
 -- Categorías
-INSERT INTO categories (name, type, icon) VALUES
-('Espresso', 'cafe', '☕'),
-('Latte', 'cafe', '🥛'),
-('Frío', 'cafe', '🧊'),
-('Infusiones', 'cafe', '🍵'),
+INSERT IGNORE INTO categories (name, type, icon) VALUES
+('Espresso',   'cafe',   '☕'),
+('Latte',      'cafe',   '🥛'),
+('Frío',       'cafe',   '🧊'),
+('Infusiones', 'cafe',   '🍵'),
 ('Pastelería', 'comida', '🥐'),
-('Sandwich', 'comida', '🥪'),
-('Snacks', 'comida', '🍪');
+('Sandwich',   'comida', '🥪'),
+('Snacks',     'comida', '🍪');
 
 -- Productos con imágenes locales predefinidas
-INSERT INTO products (name, description, price, stock, stock_min, category_id, type, image_url) VALUES
--- Cafés Espresso
-('Espresso Simple', 'Shot de espresso puro y concentrado', 1500.00, 50, 10, 1, 'cafe', '/images/cafe.jpg'),
-('Espresso Doble', 'Doble shot de espresso', 2000.00, 50, 10, 1, 'cafe', '/images/cafe.jpg'),
-('Cortado', 'Espresso con un toque de leche', 2200.00, 40, 8, 1, 'cafe', '/images/cafe.jpg'),
-
--- Lattes
-('Cappuccino', 'Espresso con leche vaporizada y espuma', 3000.00, 40, 8, 2, 'cafe', '/images/cafe.jpg'),
-('Latte', 'Espresso con abundante leche vaporizada', 3200.00, 35, 8, 2, 'cafe', '/images/cafe.jpg'),
-('Flat White', 'Doble espresso con leche sedosa', 3500.00, 30, 5, 2, 'cafe', '/images/cafe.jpg'),
-
--- Bebidas frías
-('Cold Brew', 'Café infusionado en frío 24hs', 3800.00, 20, 5, 3, 'cafe', '/images/cafe.jpg'),
-('Frappé', 'Café helado con leche y hielo', 4000.00, 15, 5, 3, 'cafe', '/images/cafe.jpg'),
-('Gaseosa', 'Gaseosa 500ml', 1000.00, 30, 10, 3, 'cafe', '/images/gaseosa.jpg'),
-
--- Infusiones
-('Té Verde', 'Té verde japonés matcha', 2000.00, 30, 5, 4, 'cafe', '/images/varios.jpg'),
-
--- Pastelería
-('Medialuna', 'Medialuna de manteca artesanal', 1200.00, 25, 5, 5, 'comida', '/images/medialuna.jpg'),
-('Croissant Jamón y Queso', 'Croissant relleno caliente', 2800.00, 20, 5, 5, 'comida', '/images/cubanito.jpg'),
-('Muffin', 'Muffin esponjoso con arándanos', 1800.00, 15, 5, 5, 'comida', '/images/varios.jpg'),
-
--- Sandwiches
-('Sandwich Caprese', 'Tomate, mozzarella y albahaca', 3500.00, 12, 3, 6, 'comida', '/images/cubanito.jpg'),
-('Tostado', 'Tostado clásico con jamón y queso', 3000.00, 15, 3, 6, 'comida', '/images/cubanito.jpg'),
-
--- Snacks
-('Cookie', 'Cookie artesanal con chips de chocolate', 1500.00, 20, 5, 7, 'comida', '/images/varios.jpg');
+INSERT IGNORE INTO products (name, description, price, stock, stock_min, category_id, type, image_url) VALUES
+-- Cafés Espresso (category_id = 1)
+('Espresso Simple',        'Shot de espresso puro y concentrado',      1500.00, 50, 10, 1, 'cafe',   '/images/cafe.jpg'),
+('Espresso Doble',         'Doble shot de espresso',                   2000.00, 50, 10, 1, 'cafe',   '/images/cafe.jpg'),
+('Cortado',                'Espresso con un toque de leche',           2200.00, 40,  8, 1, 'cafe',   '/images/cafe.jpg'),
+-- Lattes (category_id = 2)
+('Cappuccino',             'Espresso con leche vaporizada y espuma',   3000.00, 40,  8, 2, 'cafe',   '/images/cafe.jpg'),
+('Latte',                  'Espresso con abundante leche vaporizada',  3200.00, 35,  8, 2, 'cafe',   '/images/cafe.jpg'),
+('Flat White',             'Doble espresso con leche sedosa',          3500.00, 30,  5, 2, 'cafe',   '/images/cafe.jpg'),
+-- Bebidas frías (category_id = 3)
+('Cold Brew',              'Café infusionado en frío 24hs',            3800.00, 20,  5, 3, 'cafe',   '/images/cafe.jpg'),
+('Frappé',                 'Café helado con leche y hielo',            4000.00, 15,  5, 3, 'cafe',   '/images/cafe.jpg'),
+('Gaseosa',                'Gaseosa 500ml',                            1000.00, 30, 10, 3, 'cafe',   '/images/gaseosa.jpg'),
+-- Infusiones (category_id = 4)
+('Té Verde',               'Té verde japonés matcha',                  2000.00, 30,  5, 4, 'cafe',   '/images/varios.jpg'),
+-- Pastelería (category_id = 5)
+('Medialuna',              'Medialuna de manteca artesanal',           1200.00, 25,  5, 5, 'comida', '/images/medialuna.jpg'),
+('Croissant Jamón y Queso','Croissant relleno caliente',               2800.00, 20,  5, 5, 'comida', '/images/cubanito.jpg'),
+('Muffin',                 'Muffin esponjoso con arándanos',           1800.00, 15,  5, 5, 'comida', '/images/varios.jpg'),
+-- Sandwiches (category_id = 6)
+('Sandwich Caprese',       'Tomate, mozzarella y albahaca',            3500.00, 12,  3, 6, 'comida', '/images/cubanito.jpg'),
+('Tostado',                'Tostado clásico con jamón y queso',        3000.00, 15,  3, 6, 'comida', '/images/cubanito.jpg'),
+-- Snacks (category_id = 7)
+('Cookie',                 'Cookie artesanal con chips de chocolate',  1500.00, 20,  5, 7, 'comida', '/images/varios.jpg');
 
 -- ============================================================
 -- FIN DEL SCRIPT
@@ -248,5 +242,5 @@ INSERT INTO products (name, description, price, stock, stock_min, category_id, t
 -- 2. Ejecutar: source /ruta/a/schema.sql
 -- 3. Verificar: USE cafeteria_pos; SHOW TABLES;
 -- 4. Login de prueba:
---    - Admin: admin@cafeteria.com / admin123
+--    - Admin:  admin@cafeteria.com  / admin123
 --    - Cajero: cajero@cafeteria.com / admin123
