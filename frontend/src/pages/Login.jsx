@@ -70,14 +70,14 @@ export default function Login() {
             fontSize: 24, 
             marginTop: 8 
           }}>
-            CaféPOS
+            Delicias Rodantes
           </h1>
           <p style={{ 
             color: 'var(--text-muted)', 
             fontSize: 13, 
             marginTop: 4 
           }}>
-            Sistema de Punto de Venta
+            Delicias Rodantes
           </p>
         </div>
 
@@ -129,7 +129,7 @@ export default function Login() {
         </form>
 
         {/* Credenciales de prueba */}
-        <div style={{
+{/*         <div style={{
           marginTop: 24,
           padding: '12px 16px',
           background: 'var(--foam)',
@@ -138,7 +138,7 @@ export default function Login() {
           color: 'var(--text-muted)'
         }}>
           <strong style={{ color: 'var(--text-secondary)' }}>
-            Credenciales de prueba:
+            Sistema de ventas:
           </strong>
           <div style={{ marginTop: 6, lineHeight: 1.6 }}>
             👑 Admin: <code style={{ 
@@ -146,26 +146,26 @@ export default function Login() {
               padding: '2px 6px', 
               borderRadius: 4,
               fontFamily: 'monospace'
-            }}>admin@cafeteria.com</code> / <code style={{ 
+            }}>usuario@mail.com</code> / <code style={{ 
               background: 'white', 
               padding: '2px 6px', 
               borderRadius: 4,
               fontFamily: 'monospace'
-            }}>admin123</code>
+            }}>password</code>
             <br />
             🧑‍💼 Cajero: <code style={{ 
               background: 'white', 
               padding: '2px 6px', 
               borderRadius: 4,
               fontFamily: 'monospace'
-            }}>cajero@cafeteria.com</code> / <code style={{ 
+            }}>usuario@mail.com</code> / <code style={{ 
               background: 'white', 
               padding: '2px 6px', 
               borderRadius: 4,
               fontFamily: 'monospace'
-            }}>admin123</code>
+            }}>password</code>
           </div>
-        </div>
+        </div> */}
 
         {/* Footer */}
         <div style={{ 
@@ -174,7 +174,7 @@ export default function Login() {
           fontSize: 12, 
           color: 'var(--text-muted)' 
         }}>
-          Powered by <strong>CaféPOS</strong>
+          Powered by <strong>Jorge Pastoriza</strong>
         </div>
       </div>
     </div>
