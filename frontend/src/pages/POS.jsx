@@ -1,6 +1,7 @@
 // src/pages/POS.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { productsAPI, categoriesAPI, salesAPI, configAPI } from '../services/api';
+import { useCart } from '../context/CartContext';
 import toast from 'react-hot-toast';
 
 const formatPrice = (n) => `$${parseFloat(n).toLocaleString('es-AR', { minimumFractionDigits: 0 })}`;
